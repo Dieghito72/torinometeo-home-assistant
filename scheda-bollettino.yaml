@@ -4,6 +4,7 @@ content: |-
   {% set meteo = 'weather.torinometeo_to_r_parco_250_m' %}
   {% set giorni = state_attr(meteo, 'bulletin_days') or [] %}
   {% set pubblicato = state_attr(meteo, 'bulletin_date') %}
+  {% set valido_fino = state_attr(meteo, 'bulletin_valid_until') %}
   {% if pubblicato %}
   Pubblicato il {{ as_datetime(pubblicato).strftime('%d/%m/%Y') }}.
   {% endif %}
@@ -40,7 +41,9 @@ content: |-
   {% endif %}
 
   {% endfor %}
+  {% elif valido_fino %}
+  L'ultimo bollettino conteneva previsioni fino al {{ as_datetime(valido_fino).strftime('%d/%m/%Y') }}. Al momento il servizio non offre giorni di previsione validi.
   {% else %}
-  Il bollettino disponibile non contiene previsioni valide per oggi o i prossimi giorni.
+  Al momento il servizio non offre giorni di previsione validi.
   {% endif %}
   [Fonte TorinoMeteo](https://www.torinometeo.org/previsioni/)

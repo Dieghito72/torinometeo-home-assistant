@@ -37,7 +37,6 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_pressure_unit = UnitOfPressure.HPA
     _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
-    _attr_supported_features = WeatherEntityFeature.FORECAST_DAILY
 
     def __init__(self, runtime: RuntimeData, name: str, slug: str) -> None:
         super().__init__(runtime.station)
@@ -56,6 +55,13 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
     def available(self) -> bool:
         """Keep the bulletin accessible during a station outage."""
         return super().available or bool(self._current_days())
+
+    @property
+    def supported_features(self) -> int:
+        """Enable the forecast panel only when it has a day it can display."""
+        if self._has_native_forecast(self._current_days()):
+            return WeatherEntityFeature.FORECAST_DAILY
+        return 0
 
     @callback
     def _apply_observation(self) -> None:
@@ -85,6 +91,11 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
         today = datetime.now(self._timezone).date()
         return [day for day in bulletin.days if day.date >= today]
 
+    @staticmethod
+    def _has_native_forecast(days: list[ForecastDay]) -> bool:
+        # Home Assistant's weather panels require at least one temperature.
+        return any(day.temperature_pair[1] is not None for day in days)
+
     async def async_forecast_daily(self) -> list[Forecast]:
         """Return days from the latest published regional bulletin."""
         forecasts: list[Forecast] = []
@@ -104,12 +115,14 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Expose the bulletin text and when the station last reported."""
         attrs: dict[str, Any] = {
-            "attribution": "Misure e bollettino: TorinoMeteo. Icone realtime: MET Norway / Yr.",
             "station_slug": self._slug,
             "station_url": f"https://www.torinometeo.org/realtime/{self._slug}",
             "bulletin_url": "https://www.torinometeo.org/previsioni/",
             "bulletin_update_ok": self._bulletin.last_update_success,
         }
+        attribution = "Misure e bollettino: TorinoMeteo. Icone realtime: MET Norway / Yr."
+        bulletin_status = "unavailable"
+        bulletin_message = "Bollettino previsioni non disponibile."
         if observation := self.coordinator.data:
             observed_at = observation.observed_at
             if observed_at.tzinfo is None:
@@ -121,8 +134,24 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
         if bulletin := self._bulletin.data:
             attrs["bulletin_date"] = bulletin.date.isoformat()
             days = self._current_days()
+            last_day = bulletin.days[-1].date if bulletin.days else None
+            if last_day is not None:
+                attrs["bulletin_valid_until"] = last_day.isoformat()
+
             if days:
                 attrs["bulletin_summary"] = bulletin.pattern
+                if self._has_native_forecast(days):
+                    bulletin_status = "available"
+                    bulletin_message = ""
+                else:
+                    bulletin_status = "text_only"
+                    bulletin_message = "Previsioni disponibili come bollettino testuale."
+            elif last_day is not None:
+                bulletin_status = "expired"
+                bulletin_message = f"Ultimo bollettino scaduto il {last_day:%d/%m/%Y}."
+            else:
+                bulletin_status = "empty"
+                bulletin_message = "Il bollettino non contiene previsioni giornaliere."
             attrs["bulletin_days"] = [
                 {
                     "date": day.date.isoformat(),
@@ -135,4 +164,6 @@ class TorinoMeteoWeather(CoordinatorEntity[StationCoordinator], WeatherEntity):
                 }
                 for day in days
             ]
+        attrs["bulletin_status"] = bulletin_status
+        attrs["attribution"] = f"{attribution} {bulletin_message}" if bulletin_message else attribution
         return attrs
