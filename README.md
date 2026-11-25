@@ -20,6 +20,8 @@ La configurazione avviene dall’interfaccia. Le API pubbliche non richiedono cr
 
 ## Dashboard e automazioni
 
+Se la stazione pubblica una webcam su TorinoMeteo, l’integrazione aggiunge automaticamente un’entità `image.*` con la dicitura **Webcam**. Nella dashboard puoi mostrare la foto con la scheda **Entità immagine** (Picture entity), selezionando l’entità Webcam. Home Assistant recupera lo scatto quando serve e lo conserva fino al successivo aggiornamento della stazione.
+
 Per le rilevazioni attuali, aggiungi la scheda **Previsioni meteo** e seleziona l’entità TorinoMeteo. Per leggere il bollettino completo, aggiungi anche una scheda **Markdown**, apri l’editor del codice e incolla il contenuto di `scheda-bollettino.yaml`. Sostituisci l’ID nella prima riga del modello con l’ID effettivo della tua entità, che trovi nella pagina dell’integrazione o in **Strumenti per sviluppatori → Stati**.
 
 Quando sono disponibili previsioni giornaliere con temperature numeriche, puoi interrogarle in **Strumenti per sviluppatori → Azioni** o in un’automazione. Sostituisci l’ID nell’esempio:

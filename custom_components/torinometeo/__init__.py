@@ -11,7 +11,7 @@ from .api import TorinoMeteoClient
 from .const import CONF_STATION, DOMAIN
 from .coordinator import BulletinCoordinator, RuntimeData, StationCoordinator
 
-PLATFORMS = [Platform.WEATHER]
+PLATFORMS = [Platform.WEATHER, Platform.IMAGE]
 type TorinoMeteoConfigEntry = ConfigEntry[RuntimeData]
 
 
@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: TorinoMeteoConfigEntry) 
     if bulletin.data is None:
         await bulletin.async_refresh()
 
-    entry.runtime_data = RuntimeData(station, bulletin, timezone)
+    entry.runtime_data = RuntimeData(station, bulletin, timezone, client)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

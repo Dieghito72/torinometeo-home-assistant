@@ -62,3 +62,4 @@ class RuntimeData:
     station: StationCoordinator
     bulletin: BulletinCoordinator
     timezone: ZoneInfo
+    client: TorinoMeteoClient

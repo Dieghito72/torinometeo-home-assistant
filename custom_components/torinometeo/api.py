@@ -1,5 +1,6 @@
 """Client and validated API response parsing for TorinoMeteo."""
 
+from asyncio import timeout
 from dataclasses import dataclass
 from datetime import date, datetime
 from html.parser import HTMLParser
@@ -13,6 +14,7 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 from .const import API_URL
 
 SLUG_PATTERN = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+MAX_WEBCAM_BYTES = 5 * 1024 * 1024
 SYMBOLS = {
     "clearsky": "sunny",
     "fair": "partlycloudy",
@@ -122,6 +124,35 @@ def _icon_url(value: Any) -> str | None:
     return None
 
 
+def _webcam_url(value: Any) -> str | None:
+    """Accept only HTTPS URLs operated by TorinoMeteo."""
+    if url := _icon_url(value):
+        try:
+            parts = urlsplit(url)
+            host = parts.hostname or ""
+            if (
+                (host == "torinometeo.org" or host.endswith(".torinometeo.org"))
+                and parts.username is None
+                and parts.port in {None, 443}
+            ):
+                return parts._replace(scheme="https", fragment="").geturl()
+        except ValueError:
+            pass
+    return None
+
+
+def _snapshot_content_type(content: bytes) -> str | None:
+    if content.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if content.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if content.startswith(b"RIFF") and content[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
 def _simple_condition(text: str) -> str | None:
     return SIMPLE_CONDITIONS.get(text.casefold().strip(" .!"))
 
@@ -155,6 +186,15 @@ class Observation:
     dewpoint: float | None
     wind_speed: float | None
     wind_bearing: float | None
+    webcam_urls: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class WebcamSnapshot:
+    """An image served by a station's webcam."""
+
+    content: bytes
+    content_type: str
 
 
 @dataclass(frozen=True)
@@ -212,6 +252,9 @@ def parse_observation(payload: Any, slug: str) -> Observation:
     if not isinstance(icon, dict):
         icon = {}
     bearing = _number(payload.get("wind_dir"))
+    webcams = dict.fromkeys(
+        url for field in ("webcam_url", "webcam") if (url := _webcam_url(station.get(field)))
+    )
     return Observation(
         station_name=_plain_text(station.get("name")) or slug,
         observed_at=observed_at,
@@ -223,6 +266,7 @@ def parse_observation(payload: Any, slug: str) -> Observation:
         dewpoint=_number(payload.get("dewpoint")),
         wind_speed=_number(payload.get("wind_strength")),
         wind_bearing=bearing if bearing is not None and 0 <= bearing <= 360 else None,
+        webcam_urls=tuple(webcams),
     )
 
 
@@ -274,6 +318,40 @@ class TorinoMeteoClient:
 
     async def async_bulletin(self) -> Bulletin:
         return parse_bulletin(await self._async_get("forecast/get-last/"))
+
+    async def async_webcam(self, urls: tuple[str, ...]) -> WebcamSnapshot | None:
+        """Try the TorinoMeteo preview, then the station URL when supported."""
+        for url in urls:
+            try:
+                async with timeout(4):
+                    if snapshot := await self._async_webcam_source(url):
+                        return snapshot
+            except (ClientError, TimeoutError, ValueError):
+                continue
+        return None
+
+    async def _async_webcam_source(self, url: str) -> WebcamSnapshot | None:
+        for _ in range(4):
+            if (trusted_url := _webcam_url(url)) is None:
+                return None
+            async with self._session.get(trusted_url, allow_redirects=False) as response:
+                if response.status in {301, 302, 303, 307, 308}:
+                    if not (location := response.headers.get("Location")):
+                        return None
+                    url = urljoin(trusted_url, location)
+                    continue
+                if response.status != 200:
+                    return None
+                content = bytearray()
+                async for chunk in response.content.iter_chunked(65536):
+                    content.extend(chunk)
+                    if len(content) > MAX_WEBCAM_BYTES:
+                        return None
+                data = bytes(content)
+                if image_type := _snapshot_content_type(data):
+                    return WebcamSnapshot(data, image_type)
+                return None
+        return None
 
     async def _async_get(self, path: str, *, station: bool = False) -> Any:
         try:
