@@ -43,3 +43,5 @@ In un’automazione, aggiungi `response_variable: previsioni` allo stesso livell
 - L’API fornisce temperature e vento in forma testuale. Il testo, le mappe e l’affidabilità restano negli attributi `bulletin_summary` e `bulletin_days`. La previsione giornaliera nativa contiene una condizione solo quando il testo corrisponde a una descrizione semplice e una minima e massima solo quando il campo contiene una singola coppia esplicita in °C. Il pannello meteo nativo si attiva quando c’è almeno un giorno con temperature numeriche. La scheda Markdown mostra anche i giorni con previsioni solo testuali.
 
 Fonti: [API previsioni](https://www.torinometeo.org/api-tmforecast/) e [API realtime](https://www.torinometeo.org/api-realtime/). Le icone realtime provengono da MET Norway / Yr.
+
+L’icona dell’integrazione usa il [logo del sito TorinoMeteo](https://www.torinometeo.org/static/core/src/img/logoTM.a91906971005.png).
