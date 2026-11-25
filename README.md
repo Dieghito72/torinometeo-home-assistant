@@ -44,6 +44,10 @@ In un’automazione, aggiungi `response_variable: previsioni` allo stesso livell
 - Bollettino ogni ora. In caso di errore resta disponibile l’ultimo bollettino scaricato finché contiene giorni validi. Le date trascorse sono escluse secondo il fuso orario di Roma. Se il bollettino è scaduto, i dettagli dell’entità mostrano la sua ultima data di validità. Gli attributi `bulletin_status` e `bulletin_valid_until` espongono lo stato e la data per dashboard e automazioni.
 - L’API fornisce temperature e vento in forma testuale. Il testo, le mappe e l’affidabilità restano negli attributi `bulletin_summary` e `bulletin_days`. La previsione giornaliera nativa contiene una condizione solo quando il testo corrisponde a una descrizione semplice e una minima e massima solo quando il campo contiene una singola coppia esplicita in °C. Il pannello meteo nativo si attiva quando c’è almeno un giorno con temperature numeriche. La scheda Markdown mostra anche i giorni con previsioni solo testuali.
 
-Fonti: [API previsioni](https://www.torinometeo.org/api-tmforecast/) e [API realtime](https://www.torinometeo.org/api-realtime/). Le icone realtime provengono da MET Norway / Yr.
+## Fonti e ringraziamenti
+
+Questa integrazione usa le rilevazioni delle stazioni e i bollettini di previsione forniti da TorinoMeteo. Grazie all’Associazione Culturale TorinoMeteo e ai gestori delle stazioni per il lavoro di raccolta, elaborazione e condivisione dei dati. [API realtime](https://www.torinometeo.org/api-realtime/) · [API previsioni](https://www.torinometeo.org/api-tmforecast/)
+
+Le icone realtime provengono da MET Norway / Yr.
 
 L’icona dell’integrazione usa il [logo del sito TorinoMeteo](https://www.torinometeo.org/static/core/src/img/logoTM.a91906971005.png).
