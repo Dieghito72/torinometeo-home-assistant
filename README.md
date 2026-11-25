@@ -2,6 +2,13 @@
 
 L’integrazione crea un’entità `weather.*` per ogni stazione scelta. Temperatura, umidità, pressione, punto di rugiada e vento provengono dalle rilevazioni della stazione. La condizione corrente usa l’icona Yr fornita dall’API realtime, quando riconoscibile. Il bollettino regionale è condiviso fra tutte le stazioni.
 
+## Installazione dal Marketplace
+
+1. Apri **Impostazioni → Marketplace → Aggiungi da link**. Collega GitHub se Home Assistant lo richiede.
+2. Inserisci `https://github.com/Dieghito72/torinometeo-home-assistant`. Se viene richiesto il tipo, seleziona **Integrazione**.
+3. Apri **TorinoMeteo** nel Marketplace e seleziona **Installa**. Riavvia Home Assistant se richiesto.
+4. Apri **Impostazioni → Dispositivi e servizi → Aggiungi integrazione**, cerca **TorinoMeteo** e indica la tua stazione, ad esempio `torino-regio-parco`.
+
 ## Installazione manuale
 
 1. Estrai lo ZIP e copia la cartella `custom_components/torinometeo` nella cartella di configurazione di Home Assistant, accanto a `configuration.yaml`. Il risultato deve includere `<config>/custom_components/torinometeo/manifest.json`.
