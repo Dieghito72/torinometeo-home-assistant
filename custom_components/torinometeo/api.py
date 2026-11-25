@@ -13,7 +13,7 @@ from aiohttp import ClientError, ClientSession, ClientTimeout
 
 from .const import API_URL
 
-SLUG_PATTERN = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+SLUG_PATTERN = re.compile(r"[a-z0-9_-]+")
 MAX_WEBCAM_BYTES = 5 * 1024 * 1024
 SYMBOLS = {
     "clearsky": "sunny",
@@ -238,6 +238,25 @@ class Bulletin:
     days: tuple[ForecastDay, ...]
 
 
+def parse_stations(payload: Any) -> dict[str, str]:
+    """Return station identifiers and display names from the realtime list."""
+    if not isinstance(payload, list):
+        raise TorinoMeteoError("Elenco delle stazioni inatteso")
+
+    stations: dict[str, str] = {}
+    for item in payload:
+        if not isinstance(item, dict) or not isinstance(station := item.get("station"), dict):
+            continue
+        slug = station.get("slug")
+        if isinstance(slug, str) and SLUG_PATTERN.fullmatch(slug):
+            name = _plain_text(station.get("name")) or slug
+            city = _plain_text(station.get("city"))
+            if city and city.casefold() not in name.casefold():
+                name = f"{name} · {city}"
+            stations[slug] = name
+    return stations
+
+
 def parse_observation(payload: Any, slug: str) -> Observation:
     if not isinstance(payload, dict):
         raise TorinoMeteoError("Risposta realtime inattesa")
@@ -308,6 +327,9 @@ class TorinoMeteoClient:
     def __init__(self, session: ClientSession) -> None:
         self._session = session
 
+    async def async_stations(self) -> dict[str, str]:
+        return parse_stations(await self._async_get("realtime/data/", timeout_seconds=8))
+
     async def async_observation(self, slug: str) -> Observation:
         if not SLUG_PATTERN.fullmatch(slug):
             raise StationNotFound("Identificativo della stazione non valido")
@@ -353,12 +375,14 @@ class TorinoMeteoClient:
                 return None
         return None
 
-    async def _async_get(self, path: str, *, station: bool = False) -> Any:
+    async def _async_get(
+        self, path: str, *, station: bool = False, timeout_seconds: int = 15
+    ) -> Any:
         try:
             async with self._session.get(
                 f"{API_URL}/{path}",
                 headers={"Accept": "application/json"},
-                timeout=ClientTimeout(total=15),
+                timeout=ClientTimeout(total=timeout_seconds),
             ) as response:
                 if station and response.status in {404, 204}:
                     raise StationNotFound("Nessuna rilevazione per la stazione")

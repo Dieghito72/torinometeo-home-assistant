@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "TorinoMeteo station",
-        "description": "Enter the identifier at the end of the station page URL, for example torino-regio-parco.",
+        "description": "Search for a station by name, enter its station ID, or paste its TorinoMeteo page URL.",
         "data": {
-          "station": "Station identifier"
+          "station": "Station"
         }
       }
     },
     "error": {
-      "invalid_station": "Use a station identifier such as torino-regio-parco.",
+      "invalid_station": "Choose a station or enter a valid station ID or TorinoMeteo page URL.",
       "station_not_found": "TorinoMeteo returned no observations for this station.",
       "cannot_connect": "Could not load station data from TorinoMeteo."
     },

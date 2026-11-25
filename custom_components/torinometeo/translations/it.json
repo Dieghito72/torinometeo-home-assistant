@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Stazione TorinoMeteo",
-        "description": "Inserisci l’identificativo alla fine dell’indirizzo della pagina della stazione, ad esempio torino-regio-parco.",
+        "description": "Cerca la stazione per nome, digita il suo identificativo o incolla il link della pagina TorinoMeteo.",
         "data": {
-          "station": "Identificativo della stazione"
+          "station": "Stazione"
         }
       }
     },
     "error": {
-      "invalid_station": "Usa l’identificativo della stazione, ad esempio torino-regio-parco.",
+      "invalid_station": "Scegli una stazione oppure inserisci un identificativo o un link TorinoMeteo valido.",
       "station_not_found": "TorinoMeteo non ha restituito rilevazioni per questa stazione.",
       "cannot_connect": "Impossibile caricare i dati della stazione da TorinoMeteo."
     },

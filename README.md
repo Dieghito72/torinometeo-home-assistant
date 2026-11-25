@@ -7,14 +7,16 @@ L’integrazione crea un’entità `weather.*` per ogni stazione scelta. Tempera
 1. Apri **Impostazioni → Marketplace → Aggiungi da link**. Collega GitHub se Home Assistant lo richiede.
 2. Inserisci `https://github.com/Dieghito72/torinometeo-home-assistant`. Se viene richiesto il tipo, seleziona **Integrazione**.
 3. Apri **TorinoMeteo** nel Marketplace e seleziona **Installa**. Riavvia Home Assistant se richiesto.
-4. Apri **Impostazioni → Dispositivi e servizi → Aggiungi integrazione**, cerca **TorinoMeteo** e indica la tua stazione, ad esempio `torino-regio-parco`.
+4. Apri **Impostazioni → Dispositivi e servizi → Aggiungi integrazione**, cerca **TorinoMeteo** e scegli la stazione.
 
 ## Installazione manuale
 
 1. Estrai lo ZIP e copia la cartella `custom_components/torinometeo` nella cartella di configurazione di Home Assistant, accanto a `configuration.yaml`. Il risultato deve includere `<config>/custom_components/torinometeo/manifest.json`.
 2. Riavvia Home Assistant.
 3. Apri **Impostazioni → Dispositivi e servizi → Aggiungi integrazione** e cerca **TorinoMeteo**.
-4. Inserisci l’identificativo della stazione, per esempio `torino-regio-parco`. Per un’altra stazione, apri la pagina della stazione nella [mappa TorinoMeteo](https://www.torinometeo.org/new-map/) e copia l’ultimo segmento dell’indirizzo `/realtime/<identificativo>`.
+4. Scegli la stazione.
+
+Il selettore contiene le stazioni pubblicate dall’API realtime, ordinate per nome. Puoi anche digitare l’identificativo (ad esempio `torino-regio-parco`) o incollare il link della pagina della stazione, poi selezionare il valore digitato. Se l’elenco non è disponibile, il campo consente comunque l’inserimento manuale. Puoi trovare i link nella [rete di stazioni TorinoMeteo](https://www.torinometeo.org/realtime/rete/).
 
 La configurazione avviene dall’interfaccia. Le API pubbliche non richiedono credenziali. Pensato per Home Assistant 2025.12 e versioni successive.
 
