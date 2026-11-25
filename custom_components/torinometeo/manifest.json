@@ -1,0 +1,11 @@
+{
+  "domain": "torinometeo",
+  "name": "TorinoMeteo",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://www.torinometeo.org/api-tmforecast/",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0"
+}

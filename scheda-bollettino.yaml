@@ -1,0 +1,46 @@
+type: markdown
+title: Bollettino TorinoMeteo
+content: |-
+  {% set meteo = 'weather.torinometeo_to_r_parco_250_m' %}
+  {% set giorni = state_attr(meteo, 'bulletin_days') or [] %}
+  {% set pubblicato = state_attr(meteo, 'bulletin_date') %}
+  {% if pubblicato %}
+  Pubblicato il {{ as_datetime(pubblicato).strftime('%d/%m/%Y') }}.
+  {% endif %}
+
+  {% if state_attr(meteo, 'bulletin_update_ok') == false %}
+  L'ultimo tentativo di aggiornamento del bollettino è fallito.
+  {% endif %}
+
+  {% if giorni %}
+  {{ state_attr(meteo, 'bulletin_summary') or '' }}
+
+  {% for giorno in giorni %}
+  ### {{ as_datetime(giorno.date).strftime('%d/%m/%Y') }}
+
+  {{ giorno.text }}
+
+  {% if giorno.temperatures %}
+  **Temperature** — {{ giorno.temperatures }}
+  {% endif %}
+
+  {% if giorno.winds %}
+  **Vento** — {{ giorno.winds }}
+  {% endif %}
+
+  {% if giorno.reliability is not none %}
+  **Affidabilità** — {{ giorno.reliability | round(0) | int }}/100
+  {% endif %}
+
+  {% if giorno.image12 %}
+  [Mappa 00–12]({{ giorno.image12 }})
+  {% endif %}
+  {% if giorno.image24 %}
+  [Mappa 12–24]({{ giorno.image24 }})
+  {% endif %}
+
+  {% endfor %}
+  {% else %}
+  Il bollettino disponibile non contiene previsioni valide per oggi o i prossimi giorni.
+  {% endif %}
+  [Fonte TorinoMeteo](https://www.torinometeo.org/previsioni/)
